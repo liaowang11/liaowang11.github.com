@@ -1,0 +1,32 @@
+---
+layout: post
+title: "Ender.js vs Jquery.js"
+date: 2012-01-05 23:59
+comments: true
+categories: 
+---
+
+>Happy new year, guys.
+Never ask me about the scrollbar on my blog. I just don't know why it's color looks like this. :)
+
+Anyway.
+
+I like [sidelegend](http://bottlepy.org/docs/dev/ "From Bottle") alike effects so much. So I just plagiarized from Bottle.
+
+But, oops. The octopress used library [Ender.js](http://ender.no.de/ A brief intro) which just overwrite the *$*.
+
+So, I plan to port(maybe should use such a big verb) *sidelegend*.
+
+No big job, not a lot of codes.
+
+I will post the code to my [ github ](https://github.comm/liaowang11).
+
+<h2 id="Done">
+<a class="headerlink"></a>Ok, It's done.
+</h2>
+check out [sidelegend](https://github.com/liaowang11/sidelegend).
+
+BTW, it's really easy to get confused about **$(this)** and **this**.
+
+Next time, tell you some thing about _Microsoft Asia Research_..
+
