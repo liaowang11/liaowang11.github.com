@@ -3,11 +3,10 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Ender.js vs Jquery.js - A blog of wliao</title>
+	<title>A blog of wliao</title>
     <meta name="author" content="wliao">
     
-	<meta name="description" content="Happy new year, guys.
-Never ask me about the scrollbar on my blog. I just don&#8217;t know why it&#8217;s color looks like this. :) Anyway. I like &hellip;">
+	<meta name="description" content="Search Results $('#search_results').tapir({ 'token': '', 'complete' : function() { document.getElementById('search_loading').style.display="none &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -100,60 +99,21 @@ Never ask me about the scrollbar on my blog. I just don&#8217;t know why it&#821
 <div id="toload">
 <!-- begin toload --> 
     <div id="content" class="inner">
-        <article class="post">
-	<h2 class="title">Ender.js vs Jquery.js</h2>
-	<div class="entry-content"><blockquote><p>Happy new year, guys.
-Never ask me about the scrollbar on my blog. I just don&#8217;t know why it&#8217;s color looks like this. :)</p></blockquote>
-
-<p>Anyway.</p>
-
-<p>I like <a href="http://bottlepy.org/docs/dev/" title="From Bottle">sidelegend</a> alike effects so much. So I just plagiarized from Bottle.</p>
-
-<p>But, oops. The octopress used library <a href="http://ender.no.de/%20A%20brief%20intro">Ender.js</a> which just overwrite the <em>$</em>.</p>
-
-<p>So, I plan to port(maybe should use such a big verb) <em>sidelegend</em>.</p>
-
-<p>No big job, not a lot of codes.</p>
-
-<p>I will post the code to my <a href="https://github.comm/liaowang11"> github </a>.</p>
-
-<h2 id="Done">
-<a class="headerlink"></a>Ok, It&#8217;s done.
-</h2>
-
-
-<p>check out <a href="https://github.com/liaowang11/sidelegend">sidelegend</a>.</p>
-
-<p>BTW, it&#8217;s really easy to get confused about <strong>$(this)</strong> and <strong>this</strong>.</p>
-
-<p>Next time, tell you some thing about <em>Microsoft Asia Research</em>..</p>
+        <h1 class="entry-title"><center>Search Results</center></h1>
+<div id="search_loading" style="margin: 40px 0">
+    <center><img src="/images/loading.gif"></center>
 </div>
 
-<div class="meta">
-	
+<script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+<div id="search_results" style="display:none">
+<br>
 </div>
-</article>
-
-	<div class="share">
-	<div class="addthis_toolbox addthis_default_style ">
-	
-	
-	<a class="addthis_button_tweet"></a>
-	
-	
-	<a class="addthis_counter addthis_pill_style"></a>
-	</div>
-  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
-</div>
-
-
-<script type="text/javascript" src="/javascripts/sidelegend.js"></script>
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
-</section>
+<script>
+         $('#search_results').tapir({
+             'token': '',
+             'complete' : function() { document.getElementById('search_loading').style.display="none"; }
+         });
+</script>
 
 
     </div>
@@ -181,10 +141,7 @@ Never ask me about the scrollbar on my blog. I just don&#8217;t know why it&#821
       var disqus_shortname = 'wliaosblog';
       
         
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://liaowang11.github.com/blog/2012/01/05/new-post/';
-        var disqus_url = 'http://liaowang11.github.com/blog/2012/01/05/new-post/';
-        var disqus_script = 'embed.js';
+        var disqus_script = 'count.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
