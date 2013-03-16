@@ -147,10 +147,10 @@ $(window).scroll(POI.whereami);
 
 // Global events that affect all POIs
 $(document).ready(function() {
-    $('.entry-content  h1 > a.headerlink, .entry-content  h2 > a.headerlink').each(function(index){
-        var lnk = $(this);
-        var title = $(this.parentNode).text();
-        var anchor = $(this.parentNode);
+    $('.entry-content  h1, .entry-content  h2').each(function(index){
+        var title = $(this).text();
+        var anchor = $(this);
+        anchor.attr("id") || anchor.attr({id: title});
         new POI(anchor, title);
     })
     POI.whereami();

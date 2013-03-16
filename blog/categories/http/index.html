@@ -3,11 +3,10 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>A blog of wliao</title>
+	<title>Category: Http - A blog of wliao</title>
     <meta name="author" content="wliao">
     
-	<meta name="description" content="Published on: Mar 15th, 2013 Tags: Http, Web Recently, I read a post about Facebook Oauth Flaws. The post is
-interesting, so I can&#8217;t resist to &hellip;">
+	<meta name="description" content="Category: Http">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -101,257 +100,28 @@ interesting, so I can&#8217;t resist to &hellip;">
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+	
 
 
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2013/03/15/sina-oauth/">
-		
-			Sina OAuth</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
+	
+	
+	<section class="archives"><h1 class="year">2013</h1>
 
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-03-15T23:14:00+08:00" pubdate data-updated="true">Mar 15<span>th</span>, 2013</time></div>
-      <div class="tags">Tags: 
+<article>
+	<h2 class="title"><a href="/blog/2013/03/15/sina-oauth/">Sina OAuth</a></h2>
+	<div class="meta">
+		<span class="date">Mar 15</span>
+		<span class="tags">
 
 
 	<a class='category' href='/blog/categories/http/'>Http</a>, <a class='category' href='/blog/categories/web/'>Web</a>
 
 
-</div>
-    </div>
-		<p>Recently, I read a post about <a href="http://www.nirgoldshlager.com/2013/02/how-i-hacked-facebook-oauth-to-get-full.html">Facebook Oauth Flaws</a>. The post is
-interesting, so I can&#8217;t resist to give it a try on some other services
-leveraging Oauth. And the most popular one in China should undoubtedly
-be <a href="http://weibo.com">Sina Weibo</a>.</p>
-
-<h2>Sina Weibo Oauth</h2>
-
-<p>The entry point to oauth can be located at
-<a href="https://api.weibo.com/oauth2">here</a>. The developer center gave a
-overview of the oauth workflow.</p>
-
-<p><img src="http://www.sinaimg.cn/blog/developer/wiki/oAuth2_02.gif" alt="Oauth code authentication flow" /></p>
-
-<h2>Insite App Authentication</h2>
-
-<p>Take <a href="http://apps.weibo.com/guanjia">guanjia</a> as an example. The
-authentication url is here:</p>
-
-<pre><code>https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia.
-</code></pre>
-
-<h3>Ass Kicked</h3>
-
-<p>After I read the Oauth Protocol, I tried very hard to find the access
-token return by posting to the <strong>redirect_uri</strong>. But the response
-return after confirm the authentication is merely a line of
-javascript:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span><span class="nx">top</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">href</span><span class="o">=</span><span class="s2">&quot;http://apps.weibo.com/guanjia&quot;</span><span class="p">;</span><span class="o">&lt;</span><span class="err">/script&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>There is no <strong>Access Token</strong>! What the hell.</p>
-
-<p>Later on, I discovered because this is an insite app, which sharing
-the same domain as apps.weibo.com. That is to say the page is still
-returned by Sina, not posting to <strong>redirect_uri</strong>.</p>
-
-<p>At last, an <code>iframe</code> embedded in that page is the real page get posted
-to. The <strong>Access Token</strong> is named <strong>signed_request</strong>.</p>
-
-<h3>Format</h3>
-
-<pre><code>https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia
-</code></pre>
-
-<p>The <strong>client_id</strong> in the url is unique to every app. You have to
-register a developer account and propose to get your app&amp;secret key and
-get assigned a <strong>client_id</strong>.</p>
-
-<p>What we are focusing here is <strong>redirect_uri</strong> which the essence of
-<a href="http://www.nirgoldshlager.com/2013/02/how-i-hacked-facebook-oauth-to-get-full.html">Nir Goldshlager</a> article. The problem about
-<a href="http://www.facebook.com">Facebook</a> is that it does not check enough
-or maybe potentially omitted it&#8217;s own subdomain.</p>
-
-<h3>Sina Offical Apps</h3>
-
-<p>I checked the url above, but actually didn&#8217;t found the same issue.
-IMHO, sina official apps are treated totally different, each owning a
-different subdomain. And redirecting to the subdomains doesn&#8217;t work,
-which result in a very obvious error:</p>
-
-<blockquote><p>error:redirect_uri_mismatch</p></blockquote>
-
-<h2>Findings</h2>
-
-<p>A follow-up post about <a href="http://www.nirgoldshlager.com/2013/03/how-i-hacked-any-facebook-accountagain.html">Facebook Oauth</a> stated that facebook fixed
-the problem by fixing or using regular expression matching. It&#8217;s easy
-to see Sina also uses regular expression to check the
-<strong>redirect_uri</strong>.</p>
-
-<p>What I found out are:</p>
-
-<ol>
-<li>Numbers are not checked. That is to say appending numbers to the
-url passes the check and the page get redirect to an error page, which
-in most circumstances cannot be found. But I don&#8217;t think Sina will
-approve a new app name which is mostly the same with another.:)</li>
-<li>In fact, at first I&#8217;m not so familiar with <a href="http://tools.ietf.org/html/rfc6749">OAuth Protocol</a>. In
-sum, the flows examined here is not as severe as I thought. When
-requesting access to resources, it needs to provide <strong>app secret_id</strong>
-as well as the <strong>access token</strong>. The two are tied. So even if one can manage to steal
-your <strong>access token</strong>, without <strong>secret_id</strong> it poses no threats.</li>
-</ol>
-
-
-		
-		
+</span>
+	    
 	</div>
-
-<div class="meta">
-	
-</div>
 </article>
 
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2012/01/05/new-post/">
-		
-			Ender.js vs Jquery.js</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-01-05T23:59:00+08:00" pubdate data-updated="true">Jan 5<span>th</span>, 2012</time></div>
-      <div class="tags">Tags: 
-
-</div>
-    </div>
-		<blockquote><p>Happy new year, guys.
-Never ask me about the scrollbar on my blog. I just don&#8217;t know why it&#8217;s color looks like this. :)</p></blockquote>
-
-<p>Anyway.</p>
-
-<p>I like <a href="http://bottlepy.org/docs/dev/" title="From Bottle">sidelegend</a> alike effects so much. So I just plagiarized from Bottle.</p>
-
-<p>But, oops. The octopress used library <a href="http://ender.no.de/%20A%20brief%20intro">Ender.js</a> which just overwrite the <em>$</em>.</p>
-
-<p>So, I plan to port(maybe should use such a big verb) <em>sidelegend</em>.</p>
-
-<p>No big job, not a lot of codes.</p>
-
-<p>I will post the code to my <a href="https://github.comm/liaowang11"> github </a>.</p>
-
-<h2 id="Done">
-<a class="headerlink"></a>Ok, It&#8217;s done.
-</h2>
-
-
-<p>check out <a href="https://github.com/liaowang11/sidelegend">sidelegend</a>.</p>
-
-<p>BTW, it&#8217;s really easy to get confused about <strong>$(this)</strong> and <strong>this</strong>.</p>
-
-<p>Next time, tell you some thing about <em>Microsoft Asia Research</em>..</p>
-
-		
-		
-	</div>
-
-<div class="meta">
-	
-</div>
-</article>
-
-
-    <article class="post">
-	<h2 class="title">
-		
-		<a href="/blog/2011/11/30/f-number-starter/">
-		
-			F# Starter</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: 
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-11-30T19:30:00+08:00" pubdate data-updated="true">Nov 30<span>th</span>, 2011</time></div>
-      <div class="tags">Tags: 
-
-
-	<a class='category' href='/blog/categories/fp/'>FP</a>
-
-
-</div>
-    </div>
-		<p>Recently, i&#8217;m so absorbed in Haskell and tried hard to understand the <a href="http://www.scs.stanford.edu/11au-cs240h/">lectures from stanford</a>.
-I like Haskell, I have to say. It seems to make things more obvious and safe to do. Though, sometimes the high level abstraction may kill your guts.</p>
-
-<p>While interested in functional programming, I start reading &#8220;Lambda-Calculus and Combinators, an Introduction&#8221; by J.Roger Hindley, which is recommended by <a href="http://matt.might.net/#teaching">Matt Might</a>. He is a such a teacher, though I never got the privilege to be his students. :)</p>
-
-<p>So here, with win$ platform, F# seems to be the best language to study and also recommended a lot on StackOverFlow for someone who is familiar with .NET.
-This post is just for recording my learning experience with this language.</p>
-
-<h2 id="intro">
-Introduction
-<a class="headerlink" href="#intro"></a>
-</h2>
-
-
-<p>Just a brief overview of this language. F# is often compared with Ocaml</p>
-
-		
-		
-	</div>
-
-<div class="meta">
-	
-</div>
-</article>
-
-<nav id="pagenavi">
-    
-    
-    <div class="center"><a href="/blog/archives">Blog Archives</a></div>
-</nav>
 
     </div>
     <footer id="footer">
