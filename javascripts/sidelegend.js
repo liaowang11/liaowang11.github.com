@@ -23,6 +23,10 @@ POI = function(anchor, title, options) {
     this.link  = $('<a>').text(this.title)
                          .attr('href', '#'+this.id)
                          .appendTo(this.node);
+    $(this.link).click(function(){
+      $('html, body').animate({scrollTop: anchor.offset().top},
+                              200, 'linear');
+    });
     this.node.css('right', '-'+(this.node.width()-this.peak)+'px');
     this.refresh();
     this.node.mouseenter(function() { POI.show(); });
@@ -54,6 +58,7 @@ POI.prototype.hide = function() {
         //'right': '-'+(this.node.outerWidth()-this.peak)+'px'
     //}, 250);
     this.node.css("right", '-'+(this.node.width()-this.peak)+'px');
+    console.log("changed to: " + this.node.width());
     this.visible = false;
 }
 
