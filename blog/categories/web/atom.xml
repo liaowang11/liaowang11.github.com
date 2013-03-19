@@ -4,7 +4,7 @@
   <title><![CDATA[Category: web | Bits and Bytes]]></title>
   <link href="http://liaowang11.github.com/blog/categories/web/atom.xml" rel="self"/>
   <link href="http://liaowang11.github.com/"/>
-  <updated>2013-03-19T10:19:45+08:00</updated>
+  <updated>2013-03-19T10:28:40+08:00</updated>
   <id>http://liaowang11.github.com/</id>
   <author>
     <name><![CDATA[wliao]]></name>
@@ -61,7 +61,8 @@ firefox http://seat.damai.cn/xuanzuo/187617
 <ol>
 <li>务必先进选座那地址，把Flash程序缓存了，那个下载很慢。</li>
 <li>抢到速度下单，结账。</li>
-<li>好像没有3了。。</li>
+<li><del>好像没有3了。。</del>一定要先登录啊！像这种statefull的网站，瓶颈之一就是存储在服务器端的sessionID。先登录上，把session拿下。</li>
+<li>身份证号什么的，先打出来到时候复制粘贴。</li>
 </ol>
 
 
