@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Http | Bits and Bytes]]></title>
   <link href="http://liaowang11.github.com/blog/categories/http/atom.xml" rel="self"/>
   <link href="http://liaowang11.github.com/"/>
-  <updated>2013-03-16T15:01:35+08:00</updated>
+  <updated>2013-03-19T10:15:54+08:00</updated>
   <id>http://liaowang11.github.com/</id>
   <author>
     <name><![CDATA[wliao]]></name>
@@ -36,8 +36,7 @@ overview of the oauth workflow.</p>
 <p>Take <a href="http://apps.weibo.com/guanjia">guanjia</a> as an example. The
 authentication url is here:</p>
 
-<pre><code>https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia.
-</code></pre>
+<p><a href="https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia">https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia</a></p>
 
 <h3>Ass Kicked</h3>
 
@@ -62,8 +61,7 @@ to. The <strong>Access Token</strong> is named <strong>signed_request</strong>.<
 
 <h3>Format</h3>
 
-<pre><code>https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia
-</code></pre>
+<p><a href="https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia">https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia</a></p>
 
 <p>The <strong>client_id</strong> in the url is unique to every app. You have to
 register a developer account and propose to get your app&amp;secret key and

@@ -3,11 +3,11 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Sina OAuth - A blog of wliao</title>
+	<title>Just love mayday - A blog of wliao</title>
     <meta name="author" content="wliao">
     
-	<meta name="description" content="Recently, I read a post about Facebook Oauth Flaws. The post is
-interesting, so I can&#8217;t resist to give it a try on some other services &hellip;">
+	<meta name="description" content="抢票攻略 分析了一下昨天北京场的网站结构,Flash部分就没看了。总之，第一时间获取到选座地址是最重要的。 前提 选座地址不需要答题就可以进入，并且没有验证是否答题的机制。
+答题那太水了，2道题4个问 选8次好歹也进去了吧（如果你够背）。这里的验证全用的Javascript，答案都存在JSON里。 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -101,91 +101,59 @@ interesting, so I can&#8217;t resist to give it a try on some other services &he
 <!-- begin toload --> 
     <div id="content" class="inner">
         <article class="post">
-	<h2 class="title">Sina OAuth</h2>
-	<div class="entry-content"><p>Recently, I read a post about <a href="http://www.nirgoldshlager.com/2013/02/how-i-hacked-facebook-oauth-to-get-full.html">Facebook Oauth Flaws</a>. The post is
-interesting, so I can&#8217;t resist to give it a try on some other services
-leveraging Oauth. And the most popular one in China should undoubtedly
-be <a href="http://weibo.com">Sina Weibo</a>.</p>
+	<h2 class="title">Just Love Mayday</h2>
+	<div class="entry-content"><h2>抢票攻略</h2>
 
-<h2>Sina Weibo Oauth</h2>
+<p>分析了一下昨天北京场的网站结构,Flash部分就没看了。总之，第一时间获取到选座地址是最重要的。</p>
 
-<p>The entry point to oauth can be located at
-<a href="https://api.weibo.com/oauth2">here</a>. The developer center gave a
-overview of the oauth workflow.</p>
+<h3>前提</h3>
 
-<p><img src="http://www.sinaimg.cn/blog/developer/wiki/oAuth2_02.gif" alt="Oauth code authentication flow" /></p>
+<ol>
+<li>选座地址不需要答题就可以进入，并且没有验证是否答题的机制。</li>
+<li>答题那太水了，2道题4个问 选8次好歹也进去了吧（如果你够背）。这里的验证全用的Javascript，答案都存在JSON里。所以，完全可以无视。</li>
+</ol>
 
-<h2>Insite App Authentication</h2>
 
-<p>Take <a href="http://apps.weibo.com/guanjia">guanjia</a> as an example. The
-authentication url is here:</p>
+<h3>熟悉流程</h3>
 
-<p><a href="https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia">https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia</a></p>
+<p>一般抢<a href="http://damai.cn">大麦</a>的票的流程是:</p>
 
-<h3>Ass Kicked</h3>
+<pre><code>票信息地址 -》 点免费 -》 点选座 -》 答题 -》 选座
+</code></pre>
 
-<p>After I read the Oauth Protocol, I tried very hard to find the access
-token return by posting to the <strong>redirect_uri</strong>. But the response
-return after confirm the authentication is merely a line of
-javascript:</p>
+<p>我把能省略的都尽量省略了，只需要</p>
+
+<pre><code>票信息地址 -》 选座
+</code></pre>
+
+<p>这里两个Id比较重要：<strong>TicketId</strong>（也叫<strong>ProjectID</strong>)和<strong>PerformID</strong>。</p>
+
+<p>我们要首先取到的就是后者。因为选座的地址是 http://seat.damai.cn/xuanzuo/187617</p>
+
+<pre><code>http://seat.damai.cn/xuanzuo/:PerformId
+</code></pre>
+
+<p>简单来说就是：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="o">&lt;</span><span class="nx">script</span> <span class="nx">type</span><span class="o">=</span><span class="s2">&quot;text/javascript&quot;</span><span class="o">&gt;</span><span class="nx">top</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">href</span><span class="o">=</span><span class="s2">&quot;http://apps.weibo.com/guanjia&quot;</span><span class="p">;</span><span class="o">&lt;</span><span class="err">/script&gt;</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>curl -s http://www.damai.cn/ticket_47576.html | grep -i -o -P <span class="s1">&#39;performid=(\d+)&#39;</span>
+</span><span class='line'><span class="nv">performID</span><span class="o">=</span>187617
+</span><span class='line'>firefox http://seat.damai.cn/xuanzuo/187617
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>There is no <strong>Access Token</strong>! What the hell.</p>
-
-<p>Later on, I discovered because this is an insite app, which sharing
-the same domain as apps.weibo.com. That is to say the page is still
-returned by Sina, not posting to <strong>redirect_uri</strong>.</p>
-
-<p>At last, an <code>iframe</code> embedded in that page is the real page get posted
-to. The <strong>Access Token</strong> is named <strong>signed_request</strong>.</p>
-
-<h3>Format</h3>
-
-<p><a href="https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia">https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia</a></p>
-
-<p>The <strong>client_id</strong> in the url is unique to every app. You have to
-register a developer account and propose to get your app&amp;secret key and
-get assigned a <strong>client_id</strong>.</p>
-
-<p>What we are focusing here is <strong>redirect_uri</strong> which the essence of
-<a href="http://www.nirgoldshlager.com/2013/02/how-i-hacked-facebook-oauth-to-get-full.html">Nir Goldshlager</a> article. The problem about
-<a href="http://www.facebook.com">Facebook</a> is that it does not check enough
-or maybe potentially omitted it&#8217;s own subdomain.</p>
-
-<h3>Sina Offical Apps</h3>
-
-<p>I checked the url above, but actually didn&#8217;t found the same issue.
-IMHO, sina official apps are treated totally different, each owning a
-different subdomain. And redirecting to the subdomains doesn&#8217;t work,
-which result in a very obvious error:</p>
-
-<blockquote><p>error:redirect_uri_mismatch</p></blockquote>
-
-<h2>Findings</h2>
-
-<p>A follow-up post about <a href="http://www.nirgoldshlager.com/2013/03/how-i-hacked-any-facebook-accountagain.html">Facebook Oauth</a> stated that facebook fixed
-the problem by fixing or using regular expression matching. It&#8217;s easy
-to see Sina also uses regular expression to check the
-<strong>redirect_uri</strong>.</p>
-
-<p>What I found out are:</p>
+<h3>准备充分</h3>
 
 <ol>
-<li>Numbers are not checked. That is to say appending numbers to the
-url passes the check and the page get redirect to an error page, which
-in most circumstances cannot be found. But I don&#8217;t think Sina will
-approve a new app name which is mostly the same with another.:)</li>
-<li>In fact, at first I&#8217;m not so familiar with <a href="http://tools.ietf.org/html/rfc6749">OAuth Protocol</a>. In
-sum, the flows examined here is not as severe as I thought. When
-requesting access to resources, it needs to provide <strong>app secret_id</strong>
-as well as the <strong>access token</strong>. The two are tied. So even if one can manage to steal
-your <strong>access token</strong>, without <strong>secret_id</strong> it poses no threats.</li>
+<li>务必先进选座那地址，把Flash程序缓存了，那个下载很慢。</li>
+<li>抢到速度下单，结账。</li>
+<li>好像没有3了。。</li>
 </ol>
 
+
+<h2>GoodLuck</h2>
 </div>
 
 <div class="meta">
@@ -241,8 +209,8 @@ your <strong>access token</strong>, without <strong>secret_id</strong> it poses 
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://liaowang11.github.com/blog/2013/03/15/sina-oauth/';
-        var disqus_url = 'http://liaowang11.github.com/blog/2013/03/15/sina-oauth/';
+        var disqus_identifier = 'http://liaowang11.github.com/blog/2013/03/19/just-love-mayday/';
+        var disqus_url = 'http://liaowang11.github.com/blog/2013/03/19/just-love-mayday/';
         var disqus_script = 'embed.js';
       
     (function () {

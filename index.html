@@ -6,8 +6,8 @@
 	<title>A blog of wliao</title>
     <meta name="author" content="wliao">
     
-	<meta name="description" content="Published on: Mar 15th, 2013 Tags: Http, Web Recently, I read a post about Facebook Oauth Flaws. The post is
-interesting, so I can&#8217;t resist to &hellip;">
+	<meta name="description" content="Published on: Mar 19th, 2013 Tags: web 抢票攻略 分析了一下昨天北京场的网站结构,Flash部分就没看了。总之，第一时间获取到选座地址是最重要的。 前提 选座地址不需要答题就可以进入，并且没有验证是否答题的机制。
+答题那太水了，2道题4个问 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -106,6 +106,99 @@ interesting, so I can&#8217;t resist to &hellip;">
     <article class="post">
 	<h2 class="title">
 		
+		<a href="/blog/2013/03/19/just-love-mayday/">
+		
+			Just Love Mayday</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-19T09:59:00+08:00" pubdate data-updated="true">Mar 19<span>th</span>, 2013</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/web/'>web</a>
+
+
+</div>
+    </div>
+		<h2>抢票攻略</h2>
+
+<p>分析了一下昨天北京场的网站结构,Flash部分就没看了。总之，第一时间获取到选座地址是最重要的。</p>
+
+<h3>前提</h3>
+
+<ol>
+<li>选座地址不需要答题就可以进入，并且没有验证是否答题的机制。</li>
+<li>答题那太水了，2道题4个问 选8次好歹也进去了吧（如果你够背）。这里的验证全用的Javascript，答案都存在JSON里。所以，完全可以无视。</li>
+</ol>
+
+
+<h3>熟悉流程</h3>
+
+<p>一般抢<a href="http://damai.cn">大麦</a>的票的流程是:</p>
+
+<pre><code>票信息地址 -》 点免费 -》 点选座 -》 答题 -》 选座
+</code></pre>
+
+<p>我把能省略的都尽量省略了，只需要</p>
+
+<pre><code>票信息地址 -》 选座
+</code></pre>
+
+<p>这里两个Id比较重要：<strong>TicketId</strong>（也叫<strong>ProjectID</strong>)和<strong>PerformID</strong>。</p>
+
+<p>我们要首先取到的就是后者。因为选座的地址是 http://seat.damai.cn/xuanzuo/187617</p>
+
+<pre><code>http://seat.damai.cn/xuanzuo/:PerformId
+</code></pre>
+
+<p>简单来说就是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>curl -s http://www.damai.cn/ticket_47576.html | grep -i -o -P <span class="s1">&#39;performid=(\d+)&#39;</span>
+</span><span class='line'><span class="nv">performID</span><span class="o">=</span>187617
+</span><span class='line'>firefox http://seat.damai.cn/xuanzuo/187617
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>准备充分</h3>
+
+<ol>
+<li>务必先进选座那地址，把Flash程序缓存了，那个下载很慢。</li>
+<li>抢到速度下单，结账。</li>
+<li>好像没有3了。。</li>
+</ol>
+
+
+<h2>GoodLuck</h2>
+
+		
+		
+	</div>
+
+<div class="meta">
+	
+</div>
+</article>
+
+
+    <article class="post">
+	<h2 class="title">
+		
 		<a href="/blog/2013/03/15/sina-oauth/">
 		
 			Sina OAuth</a>
@@ -151,8 +244,7 @@ overview of the oauth workflow.</p>
 <p>Take <a href="http://apps.weibo.com/guanjia">guanjia</a> as an example. The
 authentication url is here:</p>
 
-<pre><code>https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia.
-</code></pre>
+<p><a href="https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia">https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia</a></p>
 
 <h3>Ass Kicked</h3>
 
@@ -177,8 +269,7 @@ to. The <strong>Access Token</strong> is named <strong>signed_request</strong>.<
 
 <h3>Format</h3>
 
-<pre><code>https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia
-</code></pre>
+<p><a href="https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia">https://api.weibo.com/oauth2/authorize?response_type=token&amp;client_id=1567453627&amp;redirect_uri=http%3A%2F%2Fapps.weibo.com/guanjia</a></p>
 
 <p>The <strong>client_id</strong> in the url is unique to every app. You have to
 register a developer account and propose to get your app&amp;secret key and
