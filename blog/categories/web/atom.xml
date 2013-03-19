@@ -4,7 +4,7 @@
   <title><![CDATA[Category: web | Bits and Bytes]]></title>
   <link href="http://liaowang11.github.com/blog/categories/web/atom.xml" rel="self"/>
   <link href="http://liaowang11.github.com/"/>
-  <updated>2013-03-19T10:15:54+08:00</updated>
+  <updated>2013-03-19T10:19:45+08:00</updated>
   <id>http://liaowang11.github.com/</id>
   <author>
     <name><![CDATA[wliao]]></name>
@@ -49,7 +49,7 @@
 <pre><code>http://seat.damai.cn/xuanzuo/:PerformId
 </code></pre>
 
-<p>简单来说就是：
+<p>简单来说就是(如果没有curl，就只有用浏览器打开，查看源代码，然后搜索performid了）：
 <code>bash
 $ curl -s http://www.damai.cn/ticket_47576.html | grep -i -o -P 'performid=(\d+)'
 performID=187617
