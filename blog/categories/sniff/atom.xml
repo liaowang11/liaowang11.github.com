@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Sniff | Bits and Bytes]]></title>
+  <link href="http://liaowang11.github.com/blog/categories/sniff/atom.xml" rel="self"/>
+  <link href="http://liaowang11.github.com/"/>
+  <updated>2013-03-26T01:03:53+08:00</updated>
+  <id>http://liaowang11.github.com/</id>
+  <author>
+    <name><![CDATA[wliao]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Diving Into Damai.cn-Part1]]></title>
+    <link href="http://liaowang11.github.com/blog/2013/03/25/diving-into-damai-dot-cn-part1/"/>
+    <updated>2013-03-25T18:29:00+08:00</updated>
+    <id>http://liaowang11.github.com/blog/2013/03/25/diving-into-damai-dot-cn-part1</id>
+    <content type="html"><![CDATA[<p>这几天花了些时间来研究大麦购票的流程，虽然现在也没啥意义。下面仅当记录和分享用。</p>
+
+<h2>方法</h2>
+
+<p>为了实现automated qiangpiao（好高级的英文），我们需要了解整个流程，而不是<a href="http://wliao.name/blog/2013/03/19/just-love-mayday/">简单的到选座的网站</a>就OK了。但是选座是用ActionScript写的，所以这里就有两个选择了。</p>
+
+<ol>
+<li>嗅探（Sniff不知道算不算）客户端与服务器端通信（HTTP协议）的内容，然后连蒙带猜搞懂流程和数据。</li>
+<li>反编译Flash，分析代码。</li>
+</ol>
+
+
+<p>这个Post说的是第一种，第二种请见Part2。</p>
+
+<h2>工具</h2>
+
+<p>刚开始很困惑用什么工具来进行嗅探。Chrome Developer Tools 只能显示页面的请求和回复，而tcpdump貌似又有点太<del>高端</del>底层了。</p>
+
+<p>最近无意间想起了BackTrace上的<a href="http://portswigger.net/burp/">burp suite</a>，这可是传说中的神器，而且还能跨平台。详细使用就读它的<a href="http://portswigger.net/burp/help/">help</a>吧。我使用的Free版本的，够用就行。Win$ 32bit下的孩子可以去找那个啥版本的（你懂的）。</p>
+
+<p><img src="/images/burpfordamai.png" alt="Burp to Sniff Damai" /></p>
+
+<h2>流程</h2>
+
+<p>如下的流程都是用Burp的Interrupt On模式分析所得，动手是最快的熟悉方法。</p>
+
+<div id="xuanzuo_flow" style="margin:auto"></div>
+
+
+<h2>数据</h2>
+
+<p><blockquote><p>"Bad programmers worry about the code. Good programmers worry about data structures and their relationships."</p><footer><strong>Linus Torvalds</strong> <cite><a href='http://lwn.net/Articles/193245/'>Good Programmer, Bad Programmer</a></cite></footer></blockquote></p>
+
+<h3>standlist.xml</h3>
+
+<p>``` xml
+&lt;?xml version="1.0" encoding="utf-8"?>
+<root rs="StandImage/852/177988/performbg.jpg" fbg="" snb="1" vn="ä¸äºè¾¾ä¸­å¿ï¼åäºæ£µæ¾ä½è²é¦ï¼" pfid="177988">
+<prices></p>
+
+<pre><code>&lt;ch id="343056" c="F91616" dn="1280" p="1280.00"/&gt;
+&lt;ch id="343057" c="EF8686" dn="880" p="880.00"/&gt;
+&lt;ch id="343058" c="8686FF" dn="680å¥ç¥¨åº" p="680.00"/&gt;
+&lt;ch id="345793" c="EAAE33" dn="680" p="680.00"/&gt;
+&lt;ch id="343059" c="8ac4e3" dn="480" p="480.00"/&gt;
+&lt;ch id="343060" c="bf6aa2" dn="280" p="280.00"/&gt;
+</code></pre>
+
+<p></prices>
+<AllPrice></p>
+
+<pre><code>&lt;ch id="343056" c="F91616" dn="1280" p="1280.00" dmpgid="954555"/&gt;
+&lt;ch id="343057" c="EF8686" dn="880" p="880.00" dmpgid="954556"/&gt;
+&lt;ch id="343058" c="8686FF" dn="680å¥ç¥¨åº" p="680.00" dmpgid="954557"/&gt;
+&lt;ch id="345793" c="EAAE33" dn="680" p="680.00" dmpgid="1115113"/&gt;
+&lt;ch id="343059" c="8ac4e3" dn="480" p="480.00" dmpgid="954558"/&gt;
+&lt;ch id="343060" c="bf6aa2" dn="280" p="280.00" dmpgid="954559"/&gt;
+</code></pre>
+
+<p></AllPrice>
+<tplist></p>
+
+<pre><code>&lt;tp id="79625" nm="1000(680X2)" p="1000" num="2" pots="1" olsl="0"&gt;
+    &lt;p id="343058" num="2"/&gt;
+&lt;/tp&gt;
+</code></pre>
+
+<p></tplist>
+<floors></p>
+
+<pre><code>&lt;f n="é¦å±çå°"/&gt;
+&lt;f n="ä¸å±çå°"/&gt;
+&lt;f n="4å¥å£ VIPåº"/&gt;
+</code></pre>
+
+<p></floors>
+<areas></p>
+
+<pre><code>&lt;a id="326717" nm="1å·é¨ 101éé" mxc="EF8686" zb="212,433|216,408|222,377|231,325|275,325|275,358|275,392|275,433|245,433" pis="343057,343058,345793" zh="0" angel="0"/&gt;
+</code></pre>
+
+<p>   ...
+</areas>
+</root>
+```</p>
+
+<p>可以看出来这是个标准的XML（编码因为burpsuite中文支持问题）。其中有趣的信息是<strong>areas</strong>标签的内容，目测表示的是选座中分的区域，其中的<strong>id</strong>就是后面要用的<strong>:name</strong>。</p>
+
+<h3>StandData</h3>
+
+<p><code>
+326717,1|326718,1|326719,1|326720,1|326721,1|326722,1|326723,0|326724,0|326725,1|326726,1|326727,1|326728,1|326729,1|326730,1|326731,0|326735,1|326736,1|326737,0|326745,0|326753,0|326755,1|326757,1|326759,1|326760,1|326761,1|326762,1|326763,1|326764,1|326765,1|326766,0|326767,0|326768,1|326772,1
+</code>
+有了上面的standlist数据这个就好猜了，格式为<code>pid,[01]</code>，猜测后面的0/1表示的是该区域是否卖完。</p>
+
+<h3>:name.txt</h3>
+
+<p>这个数据应该是里面最难的了，返回的是字节数据（byte array)。不过本博客的名字就叫<strong>bytes and bits</strong>，那怎么能放过它呢。详细的信息请参考part2。
+<code>
+00000000  16 d2 d1 09 61 01 83 c2  08 0a                    |....a.....|
+0000000a  ....
+</code></p>
+
+<h3>Interface.aspx</h3>
+
+<p>这个请求是紧接着上面的<em>:name.txt</em>的，所以肯定是该区域内座位当前的状况。该数据也是字节。
+<code>
+00000000  3a 06 d2 09 00 00 00 00  00 00                    |:.........|
+0000000a
+</code>
+如果记住后面的请求shopping.damai.cn的下订单的地址参数的话，可以看到前4个byte组成的int跟sid非常接近。</p>
+
+<h3>iseatinfo.aspx</h3>
+
+<p>这个请求的返回非常简单，格式为<code>\d,\d</code>。
+<code>
+2,0
+</code>
+猜测，后面那个就是当前正在抢这张票的人数。</p>
+
+<h3>setorder.aspx</h3>
+
+<p>到这里就直接跳转页面了，所以主要是研究该请求的参数。
+<code>
+http://shopping.damai.cn/eticket/setorder.aspx?cid=852&amp;%5Fm=815184b0a77d5bc658508a486dd3640e&amp;pid=177988&amp;sid=164745800&amp;os=&amp;pptid=NaN&amp;dj=0
+</code>
+这里面<strong>cid</strong>就是前面用到的<strong>cid</strong>,有说是companyId也有说是cityID的，反正知道就行，到底是啥不重要。</p>
+
+<p>这里有意思的是<strong>%5Fm</strong>那个参数，urldecode后就是<strong>_m</strong>参数。如果对hash很熟悉的话，看起来就很像是md5。不过我试过直接将<strong>sid</strong>进行md5sum，但是结果不同。看来是在Flash中加入的些什么。</p>
+
+<h2>预告</h2>
+
+<p>写了一个解析:name.txt内容的程序。地址在<a href="https://github.com/liaowang11/damai-data-parse">damai-data-parse</a>。</p>
+
+<p>准备在程序中加入请求等内容。目前解析出来的结果，简单表示出来就是：
+<code>
+XXXOOXXOOXXOOOOXXOO
+XXOOOOOOOOOOOOOOOOO
+XXOOOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOOOOOOOO
+XXOOOOOOOOOOOOOOOOOOO
+OOOOOOOOOOXXOOOOOOOOOOO
+OOOOOOOOOOOOOOOOOOOOOOO
+XXOOOOOOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOOOOOOOO
+XXOOOOOOOOOOOOOOOOOOO
+XXOOOOOOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOOOOOOOOOOOOOO
+OOOOOOOOOOOOXXOOOOOOOOOOO
+XXOOOOOOOOOOOOOOOOOOOOO
+</code>
+很像座位图吧？</p>
+
+<h2>小结</h2>
+
+<p>由于bytearray的格式很难猜出来，看来这种<strong>dynamic analysis</strong>（我自己取的名字，类似于reverse程序时候的调试）的方式不太可行。所以，我后来又将选座的Flash对应的swf文件进行了反编译（对应的swf还不是那么容易取到的）。详情，请见下回分解。</p>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+
+
+<script src="https://github.com/liaowang11/js-sequence-diagrams/raw/master/sequence-diagram-min.js"></script>
+
+
+<script src="http://liaowang11.github.com/javascripts/codes/damai_xuanzuo_flowchart.js"></script>
+
+]]></content>
+  </entry>
+  
+</feed>

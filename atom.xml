@@ -4,7 +4,7 @@
   <title><![CDATA[Bits and Bytes]]></title>
   <link href="http://liaowang11.github.com/atom.xml" rel="self"/>
   <link href="http://liaowang11.github.com/"/>
-  <updated>2013-03-19T16:20:39+08:00</updated>
+  <updated>2013-03-26T01:03:53+08:00</updated>
   <id>http://liaowang11.github.com/</id>
   <author>
     <name><![CDATA[wliao]]></name>
@@ -12,6 +12,238 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Diving Into Damai.cn-Part1]]></title>
+    <link href="http://liaowang11.github.com/blog/2013/03/25/diving-into-damai-dot-cn-part1/"/>
+    <updated>2013-03-25T18:29:00+08:00</updated>
+    <id>http://liaowang11.github.com/blog/2013/03/25/diving-into-damai-dot-cn-part1</id>
+    <content type="html"><![CDATA[<p>这几天花了些时间来研究大麦购票的流程，虽然现在也没啥意义。下面仅当记录和分享用。</p>
+
+<h2>方法</h2>
+
+<p>为了实现automated qiangpiao（好高级的英文），我们需要了解整个流程，而不是<a href="http://wliao.name/blog/2013/03/19/just-love-mayday/">简单的到选座的网站</a>就OK了。但是选座是用ActionScript写的，所以这里就有两个选择了。</p>
+
+<ol>
+<li>嗅探（Sniff不知道算不算）客户端与服务器端通信（HTTP协议）的内容，然后连蒙带猜搞懂流程和数据。</li>
+<li>反编译Flash，分析代码。</li>
+</ol>
+
+
+<p>这个Post说的是第一种，第二种请见Part2。</p>
+
+<h2>工具</h2>
+
+<p>刚开始很困惑用什么工具来进行嗅探。Chrome Developer Tools 只能显示页面的请求和回复，而tcpdump貌似又有点太<del>高端</del>底层了。</p>
+
+<p>最近无意间想起了BackTrace上的<a href="http://portswigger.net/burp/">burp suite</a>，这可是传说中的神器，而且还能跨平台。详细使用就读它的<a href="http://portswigger.net/burp/help/">help</a>吧。我使用的Free版本的，够用就行。Win$ 32bit下的孩子可以去找那个啥版本的（你懂的）。</p>
+
+<p><img src="http://liaowang11.github.com/images/burpfordamai.png" alt="Burp to Sniff Damai" /></p>
+
+<h2>流程</h2>
+
+<p>如下的流程都是用Burp的Interrupt On模式分析所得，动手是最快的熟悉方法。</p>
+
+<div id="xuanzuo_flow" style="margin:auto"></div>
+
+
+<h2>数据</h2>
+
+<blockquote><p>&#8220;Bad programmers worry about the code. Good programmers worry about data structures and their relationships.&#8221;</p><footer><strong>Linus Torvalds</strong> <cite><a href='http://lwn.net/Articles/193245/'>Good Programmer, Bad Programmer</a></cite></footer></blockquote>
+
+
+<h3>standlist.xml</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span>
+</span><span class='line'><span class="nt">&lt;root</span> <span class="na">rs=</span><span class="s">&quot;StandImage/852/177988/performbg.jpg&quot;</span> <span class="na">fbg=</span><span class="s">&quot;&quot;</span> <span class="na">snb=</span><span class="s">&quot;1&quot;</span> <span class="na">vn=</span><span class="s">&quot;ä¸äºè¾¾ä¸­å¿ï¼åäºæ£µæ¾ä½è²é¦ï¼&quot;</span> <span class="na">pfid=</span><span class="s">&quot;177988&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'><span class="nt">&lt;prices&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343056&quot;</span> <span class="na">c=</span><span class="s">&quot;F91616&quot;</span> <span class="na">dn=</span><span class="s">&quot;1280&quot;</span> <span class="na">p=</span><span class="s">&quot;1280.00&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343057&quot;</span> <span class="na">c=</span><span class="s">&quot;EF8686&quot;</span> <span class="na">dn=</span><span class="s">&quot;880&quot;</span> <span class="na">p=</span><span class="s">&quot;880.00&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343058&quot;</span> <span class="na">c=</span><span class="s">&quot;8686FF&quot;</span> <span class="na">dn=</span><span class="s">&quot;680å¥ç¥¨åº&quot;</span> <span class="na">p=</span><span class="s">&quot;680.00&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;345793&quot;</span> <span class="na">c=</span><span class="s">&quot;EAAE33&quot;</span> <span class="na">dn=</span><span class="s">&quot;680&quot;</span> <span class="na">p=</span><span class="s">&quot;680.00&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343059&quot;</span> <span class="na">c=</span><span class="s">&quot;8ac4e3&quot;</span> <span class="na">dn=</span><span class="s">&quot;480&quot;</span> <span class="na">p=</span><span class="s">&quot;480.00&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343060&quot;</span> <span class="na">c=</span><span class="s">&quot;bf6aa2&quot;</span> <span class="na">dn=</span><span class="s">&quot;280&quot;</span> <span class="na">p=</span><span class="s">&quot;280.00&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;/prices&gt;</span>
+</span><span class='line'><span class="nt">&lt;AllPrice&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343056&quot;</span> <span class="na">c=</span><span class="s">&quot;F91616&quot;</span> <span class="na">dn=</span><span class="s">&quot;1280&quot;</span> <span class="na">p=</span><span class="s">&quot;1280.00&quot;</span> <span class="na">dmpgid=</span><span class="s">&quot;954555&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343057&quot;</span> <span class="na">c=</span><span class="s">&quot;EF8686&quot;</span> <span class="na">dn=</span><span class="s">&quot;880&quot;</span> <span class="na">p=</span><span class="s">&quot;880.00&quot;</span> <span class="na">dmpgid=</span><span class="s">&quot;954556&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343058&quot;</span> <span class="na">c=</span><span class="s">&quot;8686FF&quot;</span> <span class="na">dn=</span><span class="s">&quot;680å¥ç¥¨åº&quot;</span> <span class="na">p=</span><span class="s">&quot;680.00&quot;</span> <span class="na">dmpgid=</span><span class="s">&quot;954557&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;345793&quot;</span> <span class="na">c=</span><span class="s">&quot;EAAE33&quot;</span> <span class="na">dn=</span><span class="s">&quot;680&quot;</span> <span class="na">p=</span><span class="s">&quot;680.00&quot;</span> <span class="na">dmpgid=</span><span class="s">&quot;1115113&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343059&quot;</span> <span class="na">c=</span><span class="s">&quot;8ac4e3&quot;</span> <span class="na">dn=</span><span class="s">&quot;480&quot;</span> <span class="na">p=</span><span class="s">&quot;480.00&quot;</span> <span class="na">dmpgid=</span><span class="s">&quot;954558&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ch</span> <span class="na">id=</span><span class="s">&quot;343060&quot;</span> <span class="na">c=</span><span class="s">&quot;bf6aa2&quot;</span> <span class="na">dn=</span><span class="s">&quot;280&quot;</span> <span class="na">p=</span><span class="s">&quot;280.00&quot;</span> <span class="na">dmpgid=</span><span class="s">&quot;954559&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;/AllPrice&gt;</span>
+</span><span class='line'><span class="nt">&lt;tplist&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;tp</span> <span class="na">id=</span><span class="s">&quot;79625&quot;</span> <span class="na">nm=</span><span class="s">&quot;1000(680X2)&quot;</span> <span class="na">p=</span><span class="s">&quot;1000&quot;</span> <span class="na">num=</span><span class="s">&quot;2&quot;</span> <span class="na">pots=</span><span class="s">&quot;1&quot;</span> <span class="na">olsl=</span><span class="s">&quot;0&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;p</span> <span class="na">id=</span><span class="s">&quot;343058&quot;</span> <span class="na">num=</span><span class="s">&quot;2&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/tp&gt;</span>
+</span><span class='line'><span class="nt">&lt;/tplist&gt;</span>
+</span><span class='line'><span class="nt">&lt;floors&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;f</span> <span class="na">n=</span><span class="s">&quot;é¦å±çå°&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;f</span> <span class="na">n=</span><span class="s">&quot;ä¸å±çå°&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;f</span> <span class="na">n=</span><span class="s">&quot;4å¥å£ VIPåº&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;/floors&gt;</span>
+</span><span class='line'><span class="nt">&lt;areas&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;a</span> <span class="na">id=</span><span class="s">&quot;326717&quot;</span> <span class="na">nm=</span><span class="s">&quot;1å·é¨ 101éé&quot;</span> <span class="na">mxc=</span><span class="s">&quot;EF8686&quot;</span> <span class="na">zb=</span><span class="s">&quot;212,433|216,408|222,377|231,325|275,325|275,358|275,392|275,433|245,433&quot;</span> <span class="na">pis=</span><span class="s">&quot;343057,343058,345793&quot;</span> <span class="na">zh=</span><span class="s">&quot;0&quot;</span> <span class="na">angel=</span><span class="s">&quot;0&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>   ...
+</span><span class='line'><span class="nt">&lt;/areas&gt;</span>
+</span><span class='line'><span class="nt">&lt;/root&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看出来这是个标准的XML（编码因为burpsuite中文支持问题）。其中有趣的信息是<strong>areas</strong>标签的内容，目测表示的是选座中分的区域，其中的<strong>id</strong>就是后面要用的<strong>:name</strong>。</p>
+
+<h3>StandData</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>326717,1|326718,1|326719,1|326720,1|326721,1|326722,1|326723,0|326724,0|326725,1|326726,1|326727,1|326728,1|326729,1|326730,1|326731,0|326735,1|326736,1|326737,0|326745,0|326753,0|326755,1|326757,1|326759,1|326760,1|326761,1|326762,1|326763,1|326764,1|326765,1|326766,0|326767,0|326768,1|326772,1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有了上面的standlist数据这个就好猜了，格式为<code>pid,[01]</code>，猜测后面的0/1表示的是该区域是否卖完。</p>
+
+<h3>:name.txt</h3>
+
+<p>这个数据应该是里面最难的了，返回的是字节数据（byte array)。不过本博客的名字就叫<strong>bytes and bits</strong>，那怎么能放过它呢。详细的信息请参考part2。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>00000000  16 d2 d1 09 61 01 83 c2  08 0a                    |....a.....|
+</span><span class='line'>0000000a  ....
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Interface.aspx</h3>
+
+<p>这个请求是紧接着上面的<em>:name.txt</em>的，所以肯定是该区域内座位当前的状况。该数据也是字节。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>00000000  3a 06 d2 09 00 00 00 00  00 00                    |:.........|
+</span><span class='line'>0000000a
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果记住后面的请求shopping.damai.cn的下订单的地址参数的话，可以看到前4个byte组成的int跟sid非常接近。</p>
+
+<h3>iseatinfo.aspx</h3>
+
+<p>这个请求的返回非常简单，格式为<code>\d,\d</code>。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>2,0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>猜测，后面那个就是当前正在抢这张票的人数。</p>
+
+<h3>setorder.aspx</h3>
+
+<p>到这里就直接跳转页面了，所以主要是研究该请求的参数。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>http://shopping.damai.cn/eticket/setorder.aspx?cid=852<span class="err">&amp;</span>%5Fm=815184b0a77d5bc658508a486dd3640e<span class="err">&amp;</span>pid=177988<span class="err">&amp;</span>sid=164745800<span class="err">&amp;</span>os=<span class="err">&amp;</span>pptid=NaN<span class="err">&amp;</span>dj=0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里面<strong>cid</strong>就是前面用到的<strong>cid</strong>,有说是companyId也有说是cityID的，反正知道就行，到底是啥不重要。</p>
+
+<p>这里有意思的是<strong>%5Fm</strong>那个参数，urldecode后就是<strong>_m</strong>参数。如果对hash很熟悉的话，看起来就很像是md5。不过我试过直接将<strong>sid</strong>进行md5sum，但是结果不同。看来是在Flash中加入的些什么。</p>
+
+<h2>预告</h2>
+
+<p>写了一个解析:name.txt内容的程序。地址在<a href="https://github.com/liaowang11/damai-data-parse">damai-data-parse</a>。</p>
+
+<p>准备在程序中加入请求等内容。目前解析出来的结果，简单表示出来就是：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>XXXOOXXOOXXOOOOXXOO
+</span><span class='line'>XXOOOOOOOOOOOOOOOOO
+</span><span class='line'>XXOOOOOOOOOOOOOOOOOO
+</span><span class='line'>OOOOOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>OOOOOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>OOOOOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>XXOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>OOOOOOOOOOXXOOOOOOOOOOO
+</span><span class='line'>OOOOOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>XXOOOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>OOOOOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>OOOOOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>XXOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>XXOOOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>OOOOOOOOOOOOOOOOOOOOOOOOO
+</span><span class='line'>OOOOOOOOOOOOXXOOOOOOOOOOO
+</span><span class='line'>XXOOOOOOOOOOOOOOOOOOOOO
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>很像座位图吧？</p>
+
+<h2>小结</h2>
+
+<p>由于bytearray的格式很难猜出来，看来这种<strong>dynamic analysis</strong>（我自己取的名字，类似于reverse程序时候的调试）的方式不太可行。所以，我后来又将选座的Flash对应的swf文件进行了反编译（对应的swf还不是那么容易取到的）。详情，请见下回分解。</p>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js"></script>
+
+
+<script src="https://github.com/liaowang11/js-sequence-diagrams/raw/master/sequence-diagram-min.js"></script>
+
+
+<script src="http://liaowang11.github.com/javascripts/codes/damai_xuanzuo_flowchart.js"></script>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Just love mayday]]></title>
