@@ -4,7 +4,7 @@
   <title><![CDATA[Bits and Bytes]]></title>
   <link href="http://liaowang11.github.com/atom.xml" rel="self"/>
   <link href="http://liaowang11.github.com/"/>
-  <updated>2013-03-26T01:03:53+08:00</updated>
+  <updated>2013-03-27T12:15:07+08:00</updated>
   <id>http://liaowang11.github.com/</id>
   <author>
     <name><![CDATA[wliao]]></name>
@@ -12,6 +12,161 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Diving Into Damai.cn-Part2]]></title>
+    <link href="http://liaowang11.github.com/blog/2013/03/27/diving-into-damai-dot-cn-part2/"/>
+    <updated>2013-03-27T11:25:00+08:00</updated>
+    <id>http://liaowang11.github.com/blog/2013/03/27/diving-into-damai-dot-cn-part2</id>
+    <content type="html"><![CDATA[<p>上篇<a href="http://liaowang11.github.com/blog/2013/03/25/diving-into-damai-dot-cn-part1/">博文</a>中说了用Burp Suite分析选票的流程。分析发送请求和接收回复在单纯的HTTP环境中往往足够了。剩下的就只有依靠deobfuscate页面中的JS代码了，因为一般没办法知道服务器端的代码（除非你特别黑）。</p>
+
+<p>对于大麦选票来说，它用了Flash来增强用户体验。所以这里我们需要分析Flash代码而不是JS代码。</p>
+
+<h1>Reverse SWF</h1>
+
+<p>ActionScript是出了名的容易被反编译。所以大家也想了很多办法来<a href="http://active.tutsplus.com/tutorials/workflow/protect-your-flash-files-from-decompilers-by-using-encryption/">防止被反编译</a>。好在大麦只用了前面这篇文章中说到的第一步，就是采用动态加载的方式来载入真正的SWF文件。</p>
+
+<h2>Reversing Tools</h2>
+
+<p>好久没接触到Flash方面的东西，高中时用过的<a href="http://www.sothink.com/">硕思</a>没想到还发展得不错。另外比较出名的是<a href="http://www.buraks.com/asv/">AVS</a>。</p>
+
+<p>不过可惜都是要钱的。我们这种穷学生是买不起的。</p>
+
+<p>最后我选择了用sothink试用版（30天）来阅读部分代码，然后用<a href="http://www.showmycode.com/">showmycode</a>来dump代码。在了解了大概后，直接阅读showmycode给出的代码就更简单了。</p>
+
+<h2>How to?</h2>
+
+<p>实际的unpack方法是依照<a href="http://blog.codestage.ru/2012/03/07/packed/">Packed SWF. How to unpack?</a>中的dynamic unpacking。不过在Win$下有<a href="http://winhex.com/winhex/">WinHex</a>之类的神器，Linux可就没有了。</p>
+
+<p>解压后SWF头由FWS+1byte（估计是版本号）+4byte长度组成：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>0d08c090 46 57 53 0b 6f 33 02 00  |FWS.o3...|</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里就有两种办法了：</p>
+
+<ol>
+<li>写程序读/proc/$pid/mem内容：需要参考/proc/$pid/maps中的内存映射关系，太复杂。。。</li>
+<li>既然我们只是要找到内存中unpack过后的swf文件，倒不如直接把整个程序的内存全dump出来找。</li>
+</ol>
+
+
+<p>我这种懒人肯定选第二种方法了。</p>
+
+<p>具体过程：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>ps ax | grep plugin-container
+</span><span class='line'>22249 ?        Sl     1:47 /usr/lib/firefox/plugin-container /opt/mint-flashplugin-11/libflashplayer.so -greomni /usr/lib/firefox/omni.ja 22179 <span class="nb">true </span>plugin
+</span><span class='line'><span class="nv">$ </span>gcore -o flash_plugin.dump 22249
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>gcore隶属于gdb。这里将程序的plugin-container（firefox载入插件时用到的）的全部内存dump到flash_plugin.dump。</p>
+
+<p>该内存中肯定有很多unpack的swf文件，前面的文章中只是说一个一个来。太浪费时间了。既然我们已经知道目标了，为何不先试着搜索些关键字，SWF头地址应该在这些关键字的前面，而且范围包括了这些关键字搜索结果。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>hexdump -C flash_plugin.dump.22249 | grep damai
+</span><span class='line'>04157890  91 ef bc 88 77 77 77 2e  64 61 6d 61 69 2e 63 6e  |....www.damai.cn|
+</span><span class='line'>041578c0  91 ef bc 88 77 77 77 2e  64 61 6d 61 69 2e 63 6e  |....www.damai.cn|
+</span><span class='line'>061d1e70  3a 2f 2f 73 65 61 74 2e  64 61 6d 61 69 2e 63 6e  |://seat.damai.cn|
+</span><span class='line'>061f43b0  64 61 6d 61 69 2e 63 6e  00 00 91 00 91 00 00 00  |damai.cn........|
+</span><span class='line'>0c7c44a0  65 61 74 2e 64 61 6d 61  69 2e 63 6e 2f 52 65 73  |eat.damai.cn/Res|
+</span><span class='line'>0c7c49f0  73 65 61 74 2e 64 61 6d  61 69 2e 63 6e 2f 52 65  |seat.damai.cn/Re|
+</span><span class='line'>0ca962e0  65 61 74 2e 64 61 6d 61  69 2e 63 6e 2f 52 65 73  |eat.damai.cn/Res|
+</span><span class='line'>0ca96320  65 61 74 2e 64 61 6d 61  69 2e 63 6e 2f 52 65 73  |eat.damai.cn/Res|
+</span><span class='line'>0cfae580  4f 76 65 72 31 36 00 00  63 6e 2e 64 61 6d 61 69  |Over16..cn.damai|
+</span><span class='line'>0cfae610  70 00 31 00 31 00 00 00  63 6e 2e 64 61 6d 61 69  |p.1.1...cn.damai|
+</span><span class='line'>0d095360  2e 64 61 6d 61 69 2e 63  6f 6d 70 6f 6e 65 6e 74  |.damai.component|
+</span><span class='line'>0d095380  64 61 6d 61 69 2e 65 76  65 6e 74 0d 4c 6f 61 64  |damai.event.Load|
+</span><span class='line'>0d0954e0  6f 61 64 65 72 0e 63 6e  2e 64 61 6d 61 69 2e 6d  |oader.cn.damai.m|
+</span><span class='line'>0d095500  6e 2e 64 61 6d 61 69 2e  76 6f 0b 53 74 61 6e 64  |n.damai.vo.Stand|
+</span><span class='line'>0d095560  6e 66 6f 56 6f 16 63 6e  2e 64 61 6d 61 69 2e 63  |nfoVo.cn.damai.c|
+</span><span class='line'>0d095c10  6e 2e 64 61 6d 61 69 2e  63 6f 6d 70 6f 6e 65 6e  |n.damai.componen|
+</span><span class='line'>0d095c90  61 73 18 63 6e 2e 64 61  6d 61 69 2e 63 6f 6d 70  |as.cn.damai.comp|
+</span><span class='line'>0d095ed0  65 1c 63 6e 2e 64 61 6d  61 69 2e 63 6f 6d 70 6f  |e.cn.damai.compo|
+</span><span class='line'>0d096030  61 67 65 18 63 6e 2e 64  61 6d 61 69 2e 63 6f 6e  |age.cn.damai.con|
+</span><span class='line'>0d0960c0  63 6e 2e 64 61 6d 61 69  2e 63 6f 6d 70 6f 6e 65  |cn.damai.compone|
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>搜索damai，结果很多（上面省略了很多）。就算没用过ActionScript，程序员屌丝看到<strong>damai.component</strong>,<strong>damai.event.Load</strong>之类也应该猜到时namespace了。所以程序应该在地址<code>0x0d095360</code>之前。</p>
+
+<p>再次搜索FWS：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>hexdump -C flash_plugin.dump.22249 | grep FWS
+</span><span class='line'>0caed090  0c 00 01 00 00 00 00 00  46 57 53 07 e2 07 00 00  |........FWS.....|
+</span><span class='line'>0cc18090  00 00 00 00 00 00 00 00  46 57 53 0a f1 0d 00 00  |........FWS.....|
+</span><span class='line'>0cca9090  20 62 02 c0 00 00 00 00  46 57 53 0b 27 36 01 00  | b......FWS.<span class="err">&#39;</span>6..|
+</span><span class='line'>0cecc090  07 00 00 00 00 00 00 00  46 57 53 07 e2 07 00 00  |........FWS.....|
+</span><span class='line'>0d08c090  00 00 00 00 00 00 00 00  46 57 53 0b 6f 33 02 00  |........FWS.o3..|
+</span><span class='line'>0d46e360  95 cc 01 00 08 00 00 00  46 57 53 0f 95 cc 01 00  |........FWS.....|
+</span><span class='line'>0d659090  00 00 00 00 00 00 00 00  46 57 53 0f 95 cc 01 00  |........FWS.....|
+</span><span class='line'>0e6aae90  fa d4 48 ff 48 d5 48 ff  46 57 53 08 af 10 00 00  |..H.H.H.FWS.....|
+</span><span class='line'>0e6adaf0  b3 5e 52 ff 46 57 53 08  00 00 00 00 00 46 57 53  |.^R.FWS......FWS|
+</span><span class='line'>0e6adb00  07 00 00 00 00 00 46 57  53 06 00 00 00 00 00 46  |......FWS......F|
+</span><span class='line'>0e6adf70  68 6d 65 6e 74 00 46 57  53 00 43 57 53 00 5a 57  |hment.FWS.CWS.ZW|
+</span><span class='line'>0e6b0f90  00 00 00 00 00 00 00 00  46 57 53 08 eb 9c 00 00  |........FWS.....|
+</span><span class='line'>10bd3130  94 45 34 46 57 53 7e 07  e6 7c ae 99 <span class="nb">cd </span>1b 3b 43  |.E4FWS~..|....;C|
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>0x0d095360</code>之前的比较靠近的应该是<code>0x0d08c090</code>吧。</p>
+
+<p>现在我们需要把从<code>0x0d08c098</code>（看FWS的位置哦）开始，<code>0x02336f=144239</code>bytes的数据单独拷贝出来。</p>
+
+<p>一句话攻略：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>xxd -l 144239 -s 0xd08c098 flash_plugin.dump.22249 | xxd -r -seek -0xd08c098 -a &gt; may.swf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这里得到的may.swf应该就是我们需要分析的SWF文件了。</p>
+
+<h2>小结</h2>
+
+<p>本来打算写两部分够了，但是Flash代码部分画FlowChart没找到喜欢的工具，所以先暂且到这儿吧。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Diving Into Damai.cn-Part1]]></title>
